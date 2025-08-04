@@ -1,0 +1,239 @@
+# Example values file for ToolJet Helm chart
+# This demonstrates the new environment variable and secret management features
+
+apps:
+  tooljet:
+    replicaCount: 1
+    containerPort: 3000
+    deployment:
+      image:
+        repository: tooljet/tooljet
+        pullPolicy: Always
+        tag: ee-lts-latest
+      resources:
+        requests:
+          memory: "3Gi"
+          cpu: "2"
+        limits:
+          memory: "3Gi"
+          cpu: "2"
+    hpa:
+      enabled: false
+      min: 1
+      max: 1
+      threshhold:
+        cpu: 1
+        ram: 1500Mi
+    secret:
+      # Option 1: Create secret (default)
+      create: true
+      name: tooljet-server
+      data:
+        lockbox_key: "0123456789ABCDEF0123456789ABCDEF"
+        secret_key_base: "0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF"
+      
+      # Option 2: Use existing secret (uncomment to use)
+      # create: false
+      # existingSecretName: "my-tooljet-secret"
+    service:
+      port: 80
+      targetPort: 3000
+      type: ClusterIP
+
+# Individual environment variables - these will be set as individual env entries
+# If using an existing secret with envFrom, these will override values from the secret
+environmentVariables:
+  # ToolJet host (required)
+  TOOLJET_HOST: "https://tooljet.example.com"
+  
+  # Deployment platform
+  DEPLOYMENT_PLATFORM: "k8s:helm"
+  
+  # Database configuration (if using external database)
+  # PG_HOST: "postgres.example.com"
+  # PG_PORT: "5432"
+  # PG_USER: "tooljet"
+  # PG_PASS: "password"
+  # PG_DB: "tooljet_prod"
+  
+  # ToolJet Database configuration (if using external database)
+  # ENABLE_TOOLJET_DB: "true"
+  # TOOLJET_DB_HOST: "postgres.example.com"
+  # TOOLJET_DB_USER: "tooljet"
+  # TOOLJET_DB_PASS: "password"
+  # TOOLJET_DB: "tooljet_db"
+  
+  # PostgREST configuration
+  PGRST_HOST: "tooljet-postgrest:3001"
+  PGRST_JWT_SECRET: "0123456789ABCDEF0123456789ABCDEF"
+  PGRST_DB_URI: "postgres://postgres:postgres@tooljet-postgresql:5432/tooljet_db"
+  
+  # Redis configuration (if using external Redis)
+  # REDIS_HOST: "redis.example.com"
+  # REDIS_PORT: "6379"
+  # REDIS_USER: "default"
+  # REDIS_PASSWORD: "password"
+  
+  # Lockbox and secret configuration (if not using secret)
+  # LOCKBOX_MASTER_KEY: "0123456789ABCDEF0123456789ABCDEF"
+  # SECRET_KEY_BASE: "0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF"
+  
+  # Optional configurations
+  CHECK_FOR_UPDATES: "1"
+  COMMENT_FEATURE_ENABLE: "true"
+  ENABLE_MARKETPLACE_DEV_MODE: "false"
+  USER_SESSION_EXPIRY: "14400"  # 10 days in minutes
+  SERVER_HOST: ""
+  HIDE_ACCOUNT_SETUP_LINK: "false"
+  DISABLE_SIGNUPS: "false"
+  DISABLE_TOOLJET_TELEMETRY: "false"
+  DISABLE_PASSWORD_RETRY_LIMIT: "false"
+  PASSWORD_RETRY_LIMIT: "5"
+  FORWARD_RESTAPI_COOKIES: "false"
+  ENABLE_PRIVATE_APP_EMBED: "false"
+  LANGUAGE: "en"
+  
+  # SSO configurations
+  # SSO_GOOGLE_OAUTH2_CLIENT_ID: ""
+  # SSO_GIT_OAUTH2_CLIENT_ID: ""
+  # SSO_GIT_OAUTH2_CLIENT_SECRET: ""
+  # SSO_GIT_OAUTH2_HOST: ""
+  # SSO_ACCEPTED_DOMAINS: ""
+  # SSO_DISABLE_SIGNUPS: ""
+  
+  # SMTP configuration
+  # SMTP_HOST: "smtp.example.com"
+  # SMTP_PORT: "587"
+  # SMTP_USERNAME: "noreply@example.com"
+  # SMTP_PASSWORD: "password"
+  # SMTP_FROM_EMAIL: "noreply@example.com"
+  # SMTP_FROM_NAME: "ToolJet"
+  
+  # Slack configuration
+  # SLACK_CLIENT_ID: ""
+  # SLACK_CLIENT_SECRET: ""
+  
+  # Google OAuth
+  # GOOGLE_CLIENT_ID: ""
+  # GOOGLE_CLIENT_SECRET: ""
+  
+  # Google Maps
+  # GOOGLE_MAPS_API_KEY: ""
+  
+  # APM and monitoring
+  # APM_VENDOR: ""
+  # SENTRY_DSN: ""
+  # SENTRY_DEBUG: ""
+  
+  # Release version
+  # RELEASE_VERSION: ""
+  
+  # Custom CA certificates
+  # NODE_EXTRA_CA_CERTS: "/path/to/cert.pem"
+  
+  # Log file path
+  # LOG_FILE_PATH: "/var/log/tooljet/tooljet-audit.log"
+
+# Legacy env section for backward compatibility
+env:
+  TOOLJET_HOST: "http://tooljet.localhost"
+  DEPLOYMENT_PLATFORM: "k8s:helm"
+  PGRST_DB_URI: "postgres://postgres:postgres@tooljet-postgresql:5432/tooljet_db"
+  PGRST_JWT_SECRET: "779ce303294a7d84a2aea9ff1ef1912f9ac57220a0dd2c0861a11ca5ae6c5817"
+  ENABLE_TOOLJET_DB: "true"
+  TOOLJET_DB_USER: "postgres"
+  TOOLJET_DB_HOST: "tooljet-postgresql"
+  TOOLJET_DB_PASS: "postgres"
+  TOOLJET_DB: "tooljet_db"
+  PGRST_HOST: "tooljet-postgrest:3001"
+
+# External PostgreSQL configuration
+external_postgresql:
+  enabled: false
+  PG_HOST: ""
+  PG_USER: ""
+  PG_PASS: ""
+  PG_PORT: "5432"
+  PG_DB: ""
+  existingSecret: ""
+
+# External ToolJet Database configuration
+tooljetdb_external_postgresql:
+  enabled: false
+  TOOLJET_DB_USER: ""
+  TOOLJET_DB_HOST: ""
+  TOOLJET_DB_PASS: ""
+  TOOLJET_DB: ""
+  PGRST_DB_URI: ""
+
+# PostgREST configuration
+postgrest:
+  replicaCount: 1
+  image:
+    repository: postgrest/postgrest
+    tag: v12.2.0
+    pullPolicy: Always
+  containerPort: 3001
+  service:
+    port: 3001
+    targetPort: 3001
+    type: NodePort
+    nodePort: 32757
+  logLevel: info
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  podAnnotations: {}  
+
+# Redis configuration
+redis:
+  enabled: false
+  architecture: standalone
+  fullnameOverride: redis
+  auth:
+    enabled: true
+    password: "tooljet"
+  master:
+    service:
+      port: 6379
+
+redis_pod:
+  REDIS_HOST: "redis-master"
+  REDIS_PORT: "6379"
+  REDIS_USER: "default"
+
+# Autoscaling configuration
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+# Ingress configuration
+ingress:
+  enabled: false
+  type: nginx
+
+  traefik:
+    hostname: tooljet.localhost
+    ingressClassName: traefik
+    tls: []
+    annotations:
+      traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+
+  nginx:
+    hostname: tooljet.localhost
+    ingressClassName: nginx
+    tls: []
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /
+
+# PostgreSQL configuration (included)
+postgresql:
+  enabled: true
+  auth:
+    username: "postgres"
+    postgresPassword: "postgres"
+    database: "tooljet_prod"
+    existingSecret: "" 

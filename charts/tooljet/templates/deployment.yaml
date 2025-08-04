@@ -33,9 +33,22 @@ spec:
           resources:
             {{- toYaml .Values.apps.tooljet.deployment.resources | nindent 12 }}
           env:
+            {{- /* Individual environment variables from values */ -}}
+            {{- range $key, $value := .Values.environmentVariables }}
+            {{- if ne $value "" }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- end }}
+            
+            {{- /* Legacy env section for backward compatibility */ -}}
+            {{- if not .Values.environmentVariables.TOOLJET_HOST }}
             - name: TOOLJET_HOST
               value: {{ .Values.env.TOOLJET_HOST | quote }}
-            {{- if not .Values.external_postgresql.enabled }}
+            {{- end }}
+            
+            {{- /* Database configuration - only if not set in environmentVariables */ -}}
+            {{- if and (not .Values.environmentVariables.PG_HOST) (not .Values.external_postgresql.enabled) }}
             - name: PG_HOST
               value: {{ include "tooljet.postgresql.host" . | quote }}
             - name: PG_PORT
@@ -47,7 +60,7 @@ spec:
                 secretKeyRef:
                   name: {{ include "tooljet.postgresql.secretName" . }}
                   key: postgres-password
-            {{- else }}
+            {{- else if and (not .Values.environmentVariables.PG_HOST) (.Values.external_postgresql.enabled) }}
             - name: PG_HOST
               value: {{ .Values.external_postgresql.PG_HOST | quote }}
             - name: PG_PORT
@@ -59,9 +72,14 @@ spec:
             - name: PG_DB
               value: {{ .Values.external_postgresql.PG_DB | quote }}
             {{- end }}
+            
+            {{- /* ToolJet Database configuration - only if not set in environmentVariables */ -}}
+            {{- if not .Values.environmentVariables.ENABLE_TOOLJET_DB }}
             - name: ENABLE_TOOLJET_DB
               value: {{ .Values.env.ENABLE_TOOLJET_DB | quote }}
-            {{- if .Values.tooljetdb_external_postgresql.enabled }}
+            {{- end }}
+            
+            {{- if and (not .Values.environmentVariables.TOOLJET_DB_HOST) (.Values.tooljetdb_external_postgresql.enabled) }}
             - name: TOOLJET_DB_HOST
               value: {{ .Values.tooljetdb_external_postgresql.TOOLJET_DB_HOST | quote }}
             - name: TOOLJET_DB_USER
@@ -70,7 +88,7 @@ spec:
               value: {{ .Values.tooljetdb_external_postgresql.TOOLJET_DB_PASS | quote }}
             - name: TOOLJET_DB
               value: {{ .Values.tooljetdb_external_postgresql.TOOLJET_DB | quote }}
-            {{- else }}
+            {{- else if not .Values.environmentVariables.TOOLJET_DB_HOST }}
             - name: TOOLJET_DB_HOST
               value: {{ .Values.env.TOOLJET_DB_HOST | quote }}
             - name: TOOLJET_DB_USER
@@ -80,34 +98,64 @@ spec:
             - name: TOOLJET_DB
               value: {{ .Values.env.TOOLJET_DB | quote }}
             {{- end }}
+            
+            {{- /* PostgREST configuration - only if not set in environmentVariables */ -}}
+            {{- if not .Values.environmentVariables.PGRST_HOST }}
             - name: PGRST_HOST
               value: {{ .Values.env.PGRST_HOST }}
+            {{- end }}
+            {{- if not .Values.environmentVariables.PGRST_JWT_SECRET }}
             - name: PGRST_JWT_SECRET
               value: {{ .Values.env.PGRST_JWT_SECRET | quote }}
+            {{- end }}
+            
+            {{- /* Redis configuration - only if not set in environmentVariables */ -}}
+            {{- if not .Values.environmentVariables.REDIS_HOST }}
             - name: REDIS_HOST
               value: {{ .Values.redis_pod.REDIS_HOST | quote }}
+            {{- end }}
+            {{- if not .Values.environmentVariables.REDIS_PORT }}
             - name: REDIS_PORT
               value: {{ .Values.redis_pod.REDIS_PORT | quote }}
+            {{- end }}
+            {{- if not .Values.environmentVariables.REDIS_USER }}
             - name: REDIS_USER
               value: {{ .Values.redis_pod.REDIS_USER | quote }}
+            {{- end }}
+            {{- if not .Values.environmentVariables.REDIS_PASSWORD }}
             - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ include "tooljet.fullname" . }}-redis
                   key: password
+            {{- end }}
+            
+            {{- /* Lockbox and secret configuration - only if not set in environmentVariables */ -}}
+            {{- if and (not .Values.environmentVariables.LOCKBOX_MASTER_KEY) (.Values.apps.tooljet.secret.create) }}
             - name: LOCKBOX_MASTER_KEY
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.apps.tooljet.secret.name }}
                   key: LOCKBOX_MASTER_KEY
+            {{- end }}
+            {{- if and (not .Values.environmentVariables.SECRET_KEY_BASE) (.Values.apps.tooljet.secret.create) }}
             - name: SECRET_KEY_BASE
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.apps.tooljet.secret.name }}
                   key: SECRET_KEY_BASE
+            {{- end }}
+          
+          {{- /* Use envFrom with existing secret if specified */ -}}
+          {{- if and (not .Values.apps.tooljet.secret.create) (.Values.apps.tooljet.secret.existingSecretName) }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.apps.tooljet.secret.existingSecretName }}
+          {{- else if .Values.apps.tooljet.secret.create }}
           envFrom:
             - secretRef:
                 name: {{ .Values.apps.tooljet.secret.name }}
+          {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
