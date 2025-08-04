@@ -34,15 +34,7 @@ cd helm-charts
    helm package charts/tooljet/
    ```
 
-### Step 2: Enable GitHub Pages
-
-1. Go to your GitHub repository: `https://github.com/YOUR_USERNAME/helm-charts`
-2. Go to **Settings** > **Pages**
-3. Set **Source** to "Deploy from a branch"
-4. Set **Branch** to "gh-pages" and **folder** to "/"
-5. Click **Save**
-
-### Step 3: Create a Release
+### Step 2: Create a Release
 
 1. Go to **Releases** in your repository
 2. Click **"Create a new release"**
@@ -53,11 +45,21 @@ cd helm-charts
 This will trigger the GitHub Actions workflow that:
 - Lints and packages your chart
 - Creates the Helm repository index
-- Deploys it to GitHub Pages
+- Deploys it to the `gh-pages` branch
+
+### Step 3: Enable GitHub Pages
+
+**Wait for the workflow to complete first** (check the Actions tab), then:
+
+1. Go to your GitHub repository: `https://github.com/YOUR_USERNAME/helm-charts`
+2. Go to **Settings** > **Pages**
+3. Set **Source** to "Deploy from a branch"
+4. Set **Branch** to "gh-pages" and **folder** to "/"
+5. Click **Save**
 
 ### Step 4: Verify the Release
 
-After the workflow completes (usually 2-3 minutes), your chart will be available at:
+After both the workflow completes and GitHub Pages is enabled, your chart will be available at:
 ```
 https://YOUR_USERNAME.github.io/helm-charts
 ```
@@ -103,9 +105,16 @@ The workflow will automatically:
 - Verify the chart passes linting locally
 
 ### GitHub Pages Not Working
-- Check that the gh-pages branch was created
-- Verify the Pages source is set to gh-pages branch
+- **Important**: The `gh-pages` branch is created by the workflow, not manually
+- Wait for the workflow to complete before setting up GitHub Pages
+- Check that the Pages source is set to gh-pages branch
 - Wait a few minutes for the initial deployment
+
+### gh-pages Branch Doesn't Exist
+- This is normal! The branch is created by the GitHub Actions workflow
+- Create a release first to trigger the workflow
+- The workflow will create the `gh-pages` branch automatically
+- Then you can set up GitHub Pages to use that branch
 
 ## 📚 Additional Resources
 
