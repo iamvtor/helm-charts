@@ -57,9 +57,24 @@ get_repo_info() {
     fi
 }
 
+# Function to check if tag exists
+tag_exists() {
+    local tag=$1
+    git rev-parse "v$tag" >/dev/null 2>&1
+}
+
+# Function to get next version
+get_next_version() {
+    local current_version=$1
+    local major=$(echo $current_version | cut -d. -f1)
+    local minor=$(echo $current_version | cut -d. -f2)
+    local patch=$(echo $current_version | cut -d. -f3)
+    echo "$major.$minor.$((patch + 1))"
+}
+
 # Function to create initial release
 create_initial_release() {
-    print_info "Creating initial release..."
+    print_info "Creating release..."
     
     # Check if we have uncommitted changes
     if ! git diff-index --quiet HEAD --; then
@@ -71,12 +86,47 @@ create_initial_release() {
         fi
     fi
     
-    # Create and push a tag
-    local version="0.1.0"
-    git tag -a "v$version" -m "Initial release v$version"
-    git push origin "v$version"
+    # Get current version from Chart.yaml if it exists
+    local chart_version="0.1.0"
+    if [[ -f "charts/tooljet/Chart.yaml" ]]; then
+        chart_version=$(grep "^version:" charts/tooljet/Chart.yaml | awk '{print $2}')
+        print_info "Found version $chart_version in Chart.yaml"
+    fi
     
-    print_success "Tag v$version created and pushed"
+    # Check if tag already exists
+    if tag_exists "$chart_version"; then
+        print_warning "Tag v$chart_version already exists"
+        echo "Available options:"
+        echo "1. Use a new version (increment patch)"
+        echo "2. Use a custom version"
+        echo "3. Skip tag creation"
+        read -p "Choose option (1-3): " -n 1 -r
+        echo
+        
+        case $REPLY in
+            1)
+                chart_version=$(get_next_version "$chart_version")
+                print_info "Using new version: $chart_version"
+                ;;
+            2)
+                read -p "Enter custom version (e.g., 0.2.0): " chart_version
+                ;;
+            3)
+                print_info "Skipping tag creation"
+                return 0
+                ;;
+            *)
+                print_error "Invalid option"
+                exit 1
+                ;;
+        esac
+    fi
+    
+    # Create and push tag
+    git tag -a "v$chart_version" -m "Release v$chart_version"
+    git push origin "v$chart_version"
+    
+    print_success "Tag v$chart_version created and pushed"
     print_info "Now create a GitHub release from this tag to trigger the workflow"
 }
 
@@ -129,7 +179,7 @@ show_next_steps() {
     echo "2. Create a GitHub release to trigger the workflow:"
     echo "   - Go to Releases"
     echo "   - Click 'Create a new release'"
-    echo "   - Choose the tag 'v0.1.0'"
+    echo "   - Choose the tag that was just created"
     echo "   - Add release notes"
     echo "   - Click 'Publish release'"
     echo "3. Wait for the workflow to complete (check Actions tab)"
