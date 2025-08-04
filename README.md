@@ -1,23 +1,147 @@
-# ToolJet Helm Chart
-This repository contains helm charts for [ToolJet](https://github.com/ToolJet/ToolJet).\
-Charts can be used to install ToolJet in a Kubernetes Cluster via [Helm v3](https://helm.sh).\
-This setup comes with an included PostgreSQL server out of the box which is enabled by default. You can disable it and update `values.yml` with a different PostgreSQL server to be used with.
+# ToolJet Helm Charts
 
-## Installation
+This repository contains Helm charts for deploying ToolJet, an open-source low-code platform for building business applications.
 
-### From Helm repo
+## 📦 Published Chart
+
+The ToolJet Helm chart is published and available for installation directly from this repository.
+
+### Quick Start
+
 ```bash
-helm repo add tooljet https://tooljet.github.io/helm-charts
+# Add the repository
+helm repo add tooljet https://iamvtor.github.io/helm-charts
+
+# Update repositories
+helm repo update
+
+# Install ToolJet
 helm install tooljet tooljet/tooljet
 ```
 
-### From the source
-1) Clone the repo and `cd` into this directory \
-2) Run `helm dependency update`\
-3) Recommended but optional:\
-Patch the values in `values.yaml` file (usernames & passwords, persistence, ...).
-4) Run `helm install -n $NAMESPACE --create-namespace $RELEASE .`\
-You need to replace these variables with your configuration values.
+### Installation with Custom Values
 
-## Questions? Feedback?
-[Join our Slack](https://join.slack.com/t/tooljet/shared_invite/zt-r2neyfcw-KD1COL6t2kgVTlTtAV5rtg)
+```bash
+# Download the values file
+helm show values tooljet/tooljet > values.yaml
+
+# Edit values.yaml with your configuration
+# Then install with custom values
+helm install tooljet tooljet/tooljet -f values.yaml
+```
+
+## 🚀 Features
+
+- **Flexible Environment Variables**: Support for individual environment variables or existing secrets
+- **External Database Support**: Use external PostgreSQL and Redis instances
+- **Secret Management**: Use existing secrets with `envFrom` or let the chart create them
+- **Comprehensive Configuration**: Support for all ToolJet environment variables
+- **Backward Compatible**: Works with existing configurations
+
+## 📋 Prerequisites
+
+- Kubernetes 1.19+
+- Helm 3.0+
+- PostgreSQL database (included or external)
+- Redis (optional, included or external)
+
+## 🔧 Configuration
+
+### Using Individual Environment Variables
+
+```yaml
+environmentVariables:
+  TOOLJET_HOST: "https://tooljet.example.com"
+  LOCKBOX_MASTER_KEY: "your-32-byte-hex-key"
+  SECRET_KEY_BASE: "your-64-byte-hex-key"
+  PG_HOST: "postgres.example.com"
+  PG_USER: "tooljet"
+  PG_PASS: "password"
+  PG_DB: "tooljet_prod"
+```
+
+### Using Existing Secret
+
+```yaml
+apps:
+  tooljet:
+    secret:
+      create: false
+      existingSecretName: "my-tooljet-secret"
+```
+
+### External Database
+
+```yaml
+external_postgresql:
+  enabled: true
+  PG_HOST: "postgres.example.com"
+  PG_USER: "tooljet"
+  PG_PASS: "password"
+  PG_PORT: "5432"
+  PG_DB: "tooljet_prod"
+```
+
+## 📚 Documentation
+
+For detailed documentation, see the [chart README](./charts/tooljet/README.md).
+
+## 🔄 Upgrading
+
+```bash
+# Update the repository
+helm repo update
+
+# Upgrade the release
+helm upgrade tooljet tooljet/tooljet
+```
+
+## 🛠️ Development
+
+### Local Development
+
+```bash
+# Clone the repository
+git clone https://github.com/iamvtor/helm-charts.git
+cd helm-charts
+
+# Install dependencies
+helm dependency update charts/tooljet/
+
+# Lint the chart
+helm lint charts/tooljet/
+
+# Template the chart
+helm template charts/tooljet/ > /dev/null
+
+# Package the chart
+helm package charts/tooljet/
+```
+
+### Testing
+
+```bash
+# Install in test mode
+helm install tooljet charts/tooljet/ --dry-run
+
+# Test with custom values
+helm install tooljet charts/tooljet/ -f charts/tooljet/values-example.yaml --dry-run
+```
+
+## 📝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the same license as ToolJet.
+
+## 🔗 Links
+
+- [ToolJet Documentation](https://docs.tooljet.ai/)
+- [ToolJet GitHub Repository](https://github.com/ToolJet/ToolJet)
+- [Helm Documentation](https://helm.sh/docs/)

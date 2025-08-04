@@ -1,0 +1,119 @@
+# Publishing Your Helm Chart to GitHub
+
+This guide explains how to publish your ToolJet Helm chart to GitHub so others can install it directly.
+
+## 🚀 Quick Setup (Automated)
+
+Run the setup script to automate the process:
+
+```bash
+cd helm-charts
+./scripts/setup-github-pages.sh
+```
+
+## 📋 Manual Setup
+
+### Step 1: Prepare Your Repository
+
+1. **Push your changes to GitHub**
+   ```bash
+   git add .
+   git commit -m "Add ToolJet Helm chart with environment variable support"
+   git push origin main
+   ```
+
+2. **Test your chart locally**
+   ```bash
+   # Lint the chart
+   helm lint charts/tooljet/
+   
+   # Template the chart
+   helm template charts/tooljet/ > /dev/null
+   
+   # Package the chart
+   helm package charts/tooljet/
+   ```
+
+### Step 2: Enable GitHub Pages
+
+1. Go to your GitHub repository: `https://github.com/YOUR_USERNAME/helm-charts`
+2. Go to **Settings** > **Pages**
+3. Set **Source** to "Deploy from a branch"
+4. Set **Branch** to "gh-pages" and **folder** to "/"
+5. Click **Save**
+
+### Step 3: Create a Release
+
+1. Go to **Releases** in your repository
+2. Click **"Create a new release"**
+3. Create a tag (e.g., `v0.1.0`)
+4. Add release notes describing your changes
+5. Click **"Publish release"**
+
+This will trigger the GitHub Actions workflow that:
+- Lints and packages your chart
+- Creates the Helm repository index
+- Deploys it to GitHub Pages
+
+### Step 4: Verify the Release
+
+After the workflow completes (usually 2-3 minutes), your chart will be available at:
+```
+https://YOUR_USERNAME.github.io/helm-charts
+```
+
+## 🔧 Using Your Published Chart
+
+Once published, users can install your chart with:
+
+```bash
+# Add your repository
+helm repo add tooljet https://YOUR_USERNAME.github.io/helm-charts
+
+# Update repositories
+helm repo update
+
+# Install ToolJet
+helm install tooljet tooljet/tooljet
+```
+
+## 📝 Updating Your Chart
+
+To release a new version:
+
+1. **Update the chart version** in `charts/tooljet/Chart.yaml`
+2. **Commit and push your changes**
+3. **Create a new release** with a new tag (e.g., `v0.2.0`)
+
+The workflow will automatically:
+- Package the new version
+- Update the repository index
+- Deploy to GitHub Pages
+
+## 🛠️ Troubleshooting
+
+### Chart Not Found
+- Ensure GitHub Pages is enabled and deployed
+- Check that the workflow completed successfully
+- Verify the repository URL is correct
+
+### Workflow Fails
+- Check the Actions tab for error details
+- Ensure all dependencies are properly configured
+- Verify the chart passes linting locally
+
+### GitHub Pages Not Working
+- Check that the gh-pages branch was created
+- Verify the Pages source is set to gh-pages branch
+- Wait a few minutes for the initial deployment
+
+## 📚 Additional Resources
+
+- [Helm Chart Repository Guide](https://helm.sh/docs/topics/chart_repository/)
+- [GitHub Pages Documentation](https://docs.github.com/en/pages)
+- [GitHub Actions Documentation](https://docs.github.com/en/actions)
+
+## 🔗 Example Repository
+
+For reference, see how this is implemented in the official ToolJet Helm charts repository:
+- [ToolJet Helm Charts](https://github.com/ToolJet/helm-charts) 
