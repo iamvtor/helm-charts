@@ -4,13 +4,13 @@ This repository contains Helm charts for deploying ToolJet, an open-source low-c
 
 ## 📦 Published Chart
 
-The ToolJet Helm chart is published and available for installation directly from this repository.
+The ToolJet Helm chart is published and available for installation from GitHub Container Registry (ghcr.io).
 
 ### Quick Start
 
 ```bash
 # Add the repository
-helm repo add tooljet https://iamvtor.github.io/helm-charts
+helm repo add tooljet oci://ghcr.io/iamvtor
 
 # Update repositories
 helm repo update

@@ -1,6 +1,6 @@
-# Publishing Your Helm Chart to GitHub
+# Publishing Your Helm Chart to GitHub Container Registry
 
-This guide explains how to publish your ToolJet Helm chart to GitHub so others can install it directly.
+This guide explains how to publish your ToolJet Helm chart to GitHub Container Registry (ghcr.io) so others can install it directly.
 
 ## 🚀 Quick Setup (Automated)
 
@@ -44,24 +44,13 @@ cd helm-charts
 
 This will trigger the GitHub Actions workflow that:
 - Lints and packages your chart
-- Creates the Helm repository index
-- Deploys it to the `gh-pages` branch
+- Pushes it to GitHub Container Registry (ghcr.io)
 
-### Step 3: Enable GitHub Pages
+### Step 3: Verify the Release
 
-**Wait for the workflow to complete first** (check the Actions tab), then:
-
-1. Go to your GitHub repository: `https://github.com/YOUR_USERNAME/helm-charts`
-2. Go to **Settings** > **Pages**
-3. Set **Source** to "Deploy from a branch"
-4. Set **Branch** to "gh-pages" and **folder** to "/"
-5. Click **Save**
-
-### Step 4: Verify the Release
-
-After both the workflow completes and GitHub Pages is enabled, your chart will be available at:
+After the workflow completes, your chart will be available at:
 ```
-https://YOUR_USERNAME.github.io/helm-charts
+ghcr.io/YOUR_USERNAME/tooljet
 ```
 
 ## 🔧 Using Your Published Chart
@@ -70,7 +59,7 @@ Once published, users can install your chart with:
 
 ```bash
 # Add your repository
-helm repo add tooljet https://YOUR_USERNAME.github.io/helm-charts
+helm repo add tooljet oci://ghcr.io/YOUR_USERNAME
 
 # Update repositories
 helm repo update
@@ -89,40 +78,15 @@ To release a new version:
 
 The workflow will automatically:
 - Package the new version
-- Update the repository index
-- Deploy to GitHub Pages
+- Push to GitHub Container Registry
 
 ## 🛠️ Troubleshooting
 
 ### Chart Not Found
-- Ensure GitHub Pages is enabled and deployed
 - Check that the workflow completed successfully
 - Verify the repository URL is correct
+- Ensure you're using the OCI protocol: `oci://ghcr.io/YOUR_USERNAME`
 
-### Workflow Fails
-- Check the Actions tab for error details
-- Ensure all dependencies are properly configured
-- Verify the chart passes linting locally
-
-### GitHub Pages Not Working
-- **Important**: The `gh-pages` branch is created by the workflow, not manually
-- Wait for the workflow to complete before setting up GitHub Pages
-- Check that the Pages source is set to gh-pages branch
-- Wait a few minutes for the initial deployment
-
-### gh-pages Branch Doesn't Exist
-- This is normal! The branch is created by the GitHub Actions workflow
-- Create a release first to trigger the workflow
-- The workflow will create the `gh-pages` branch automatically
-- Then you can set up GitHub Pages to use that branch
-
-## 📚 Additional Resources
-
-- [Helm Chart Repository Guide](https://helm.sh/docs/topics/chart_repository/)
-- [GitHub Pages Documentation](https://docs.github.com/en/pages)
-- [GitHub Actions Documentation](https://docs.github.com/en/actions)
-
-## 🔗 Example Repository
-
-For reference, see how this is implemented in the official ToolJet Helm charts repository:
-- [ToolJet Helm Charts](https://github.com/ToolJet/helm-charts) 
+### Authentication Issues
+- The workflow uses `GITHUB_TOKEN` automatically
+- For local testing, you may need to login: `helm registry login ghcr.io` 

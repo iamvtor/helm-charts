@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Setup GitHub Pages for Helm Chart Repository
-# This script helps you set up GitHub Pages to serve your Helm chart
+# Setup GitHub Container Registry for Helm Chart Repository
+# This script helps you set up GitHub Container Registry to serve your Helm chart
 
 set -e
 
@@ -158,8 +158,6 @@ test_chart() {
 update_readme() {
     print_info "Updating README with repository information..."
     
-    local repo_url="https://$GITHUB_USERNAME.github.io/$REPO_NAME"
-    
     # Update the README.md file
     sed -i.bak "s|YOUR_GITHUB_USERNAME|$GITHUB_USERNAME|g" README.md
     sed -i.bak "s|YOUR_USERNAME|$GITHUB_USERNAME|g" README.md
@@ -183,24 +181,19 @@ show_next_steps() {
     echo "   - Add release notes"
     echo "   - Click 'Publish release'"
     echo "3. Wait for the workflow to complete (check Actions tab)"
-    echo "4. After the workflow completes, set up GitHub Pages:"
-    echo "   - Go to Settings > Pages"
-    echo "   - Set Source to 'Deploy from a branch'"
-    echo "   - Set Branch to 'gh-pages' and folder to '/'"
-    echo "   - Click Save"
     echo
     print_info "After the workflow completes, your chart will be available at:"
-    echo "https://$GITHUB_USERNAME.github.io/$REPO_NAME"
+    echo "ghcr.io/$GITHUB_USERNAME/tooljet"
     echo
     print_info "Users can then install your chart with:"
-    echo "helm repo add tooljet https://$GITHUB_USERNAME.github.io/$REPO_NAME"
+    echo "helm repo add tooljet oci://ghcr.io/$GITHUB_USERNAME"
     echo "helm install tooljet tooljet/tooljet"
 }
 
 # Main function
 main() {
-    print_info "GitHub Pages Setup for Helm Chart Repository"
-    print_info "This script will help you set up GitHub Pages to serve your Helm chart"
+    print_info "GitHub Container Registry Setup for Helm Chart Repository"
+    print_info "This script will help you set up GitHub Container Registry to serve your Helm chart"
     echo
     
     # Check prerequisites
