@@ -4,13 +4,13 @@ This repository contains Helm charts for deploying ToolJet, an open-source low-c
 
 ## 📦 Published Chart
 
-The ToolJet Helm chart is published and available for installation from GitHub Container Registry (ghcr.io).
+The ToolJet Helm chart is published and available for installation from GitHub Pages.
 
 ### Quick Start
 
 ```bash
 # Add the repository
-helm repo add tooljet oci://ghcr.io/iamvtor
+helm repo add tooljet https://iamvtor.github.io/helm-charts
 
 # Update repositories
 helm repo update
@@ -28,6 +28,34 @@ helm show values tooljet/tooljet > values.yaml
 # Edit values.yaml with your configuration
 # Then install with custom values
 helm install tooljet tooljet/tooljet -f values.yaml
+```
+
+### ArgoCD Installation
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tooljet
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://iamvtor.github.io/helm-charts
+    chart: tooljet
+    targetRevision: 3.0.12
+    helm:
+      values: |
+        environmentVariables:
+          TOOLJET_HOST: "https://tooljet.example.com"
+          # ... other variables
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: tooljet
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
 ```
 
 ## 🚀 Features
