@@ -184,7 +184,15 @@ postgrest:
   nodeSelector: {}
   tolerations: []
   affinity: {}
-  podAnnotations: {}  
+  podAnnotations: {}
+  # PostgREST secret configuration
+  secret:
+    # Option 1: Create PostgREST secret (default)
+    create: true
+    
+    # Option 2: Use existing PostgREST secret (uncomment to use)
+    # create: false
+    # existingSecretName: "my-postgrest-secret"
 
 # Redis configuration
 redis:

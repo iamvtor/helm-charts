@@ -191,7 +191,13 @@ postgrest:
   nodeSelector: {}
   tolerations: []
   affinity: {}
-  podAnnotations: {}  
+  podAnnotations: {}
+  # PostgREST secret configuration
+  secret:
+    # Set to false to disable secret creation and use existing secret
+    create: true
+    # Name of existing secret to use when create is false
+    existingSecretName: ""
 
 redis:
   enabled: false

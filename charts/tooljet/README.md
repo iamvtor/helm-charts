@@ -72,8 +72,6 @@ apps:
       existingSecretName: "my-tooljet-secret"  # Use existing secret
 ```
 
-The existing secret should contain all required environment variables as key-value pairs.
-
 ### Secret Management
 
 #### Option 1: Chart-Created Secret (Default)
@@ -100,6 +98,31 @@ apps:
       create: false
       existingSecretName: "my-existing-secret"
 ```
+
+### PostgREST Secret Configuration
+
+PostgREST also supports flexible secret management:
+
+#### Option 1: Chart-Created PostgREST Secret (Default)
+
+```yaml
+postgrest:
+  secret:
+    create: true  # Default
+```
+
+#### Option 2: Use Existing PostgREST Secret
+
+```yaml
+postgrest:
+  secret:
+    create: false
+    existingSecretName: "my-postgrest-secret"
+```
+
+The existing PostgREST secret should contain:
+- `PGRST_DB_URI`: Database connection string
+- `PGRST_JWT_SECRET`: JWT secret for authentication
 
 ### Database Configuration
 
@@ -210,7 +233,7 @@ environmentVariables:
   PGRST_DB_URI: "postgres://tooljet:password@postgres.example.com:5432/tooljet_db"
 ```
 
-### Example 2: Using Existing Secret
+### Example 2: Using Existing Secrets
 
 ```yaml
 apps:
@@ -219,7 +242,12 @@ apps:
       create: false
       existingSecretName: "my-tooljet-secret"
 
-# The secret should contain all environment variables
+postgrest:
+  secret:
+    create: false
+    existingSecretName: "my-postgrest-secret"
+
+# The secrets should contain all environment variables
 # kubectl create secret generic my-tooljet-secret \
 #   --from-literal=TOOLJET_HOST=https://tooljet.example.com \
 #   --from-literal=LOCKBOX_MASTER_KEY=0123456789ABCDEF0123456789ABCDEF \
@@ -228,6 +256,10 @@ apps:
 #   --from-literal=PG_USER=tooljet \
 #   --from-literal=PG_PASS=password \
 #   --from-literal=PG_DB=tooljet_prod
+
+# kubectl create secret generic my-postgrest-secret \
+#   --from-literal=PGRST_DB_URI=postgres://tooljet:password@postgres.example.com:5432/tooljet_db \
+#   --from-literal=PGRST_JWT_SECRET=0123456789ABCDEF0123456789ABCDEF
 ```
 
 ### Example 3: Mixed Approach
@@ -268,18 +300,22 @@ The chart maintains backward compatibility with the legacy `env` section. If you
 1. **Database Connection Errors**: Verify database credentials and network connectivity
 2. **Secret Not Found**: Ensure the existing secret exists and has the correct name
 3. **Environment Variable Conflicts**: Check for duplicate variable definitions
+4. **PostgREST Configuration**: Verify PostgREST secret contains required variables
 
 ### Debug Commands
 
 ```bash
 # Check pod logs
 kubectl logs -f deployment/tooljet
+kubectl logs -f deployment/tooljet-postgrest
 
 # Check environment variables
 kubectl exec deployment/tooljet -- env | grep -E "(PG_|TOOLJET_|PGRST_)"
+kubectl exec deployment/tooljet-postgrest -- env | grep -E "(PGRST_)"
 
 # Check secret contents
 kubectl get secret tooljet-server -o yaml
+kubectl get secret tooljet-postgrest -o yaml
 ```
 
 ## Contributing

@@ -30,25 +30,47 @@ spec:
               containerPort: {{ .Values.postgrest.containerPort }}
               protocol: TCP
           env:
-            {{- if .Values.tooljetdb_external_postgresql.enabled }}
+            {{- /* Individual environment variables from values */ -}}
+            {{- if .Values.environmentVariables.PGRST_DB_URI }}
+            - name: PGRST_DB_URI
+              value: {{ .Values.environmentVariables.PGRST_DB_URI | quote }}
+            {{- else if .Values.tooljetdb_external_postgresql.enabled }}
             - name: PGRST_DB_URI
               value: {{ .Values.tooljetdb_external_postgresql.PGRST_DB_URI }}
-            {{- else }}
+            {{- else if not .Values.environmentVariables.PGRST_DB_URI }}
             - name: PGRST_DB_URI
               value: {{ .Values.env.PGRST_DB_URI }}
             {{- end }}
+            
+            {{- if .Values.environmentVariables.PGRST_JWT_SECRET }}
+            - name: PGRST_JWT_SECRET
+              value: {{ .Values.environmentVariables.PGRST_JWT_SECRET | quote }}
+            {{- else if not .Values.environmentVariables.PGRST_JWT_SECRET }}
+            - name: PGRST_JWT_SECRET
+              value: {{ .Values.env.PGRST_JWT_SECRET }}
+            {{- end }}
+            
             - name: PGRST_DB_PRE_CONFIG
               value: postgrest.pre_config
             - name: PGRST_DB_ANON_ROLE
               value: postgres
-            - name: PGRST_JWT_SECRET
-              value: {{ .Values.env.PGRST_JWT_SECRET }}
             - name: PGRST_LOG_LEVEL
               value: {{ .Values.postgrest.logLevel | default "info" | quote }}
             - name: PGRST_SERVER_PORT
               value: "3001"
           resources:
             {{- toYaml .Values.postgrest.resources | nindent 12 }}
+      
+      {{- /* Use envFrom with existing secret if specified */ -}}
+      {{- if and (not .Values.postgrest.secret.create) (.Values.postgrest.secret.existingSecretName) }}
+      envFrom:
+        - secretRef:
+            name: {{ .Values.postgrest.secret.existingSecretName }}
+      {{- else if .Values.postgrest.secret.create }}
+      envFrom:
+        - secretRef:
+            name: {{ include "tooljet.fullname" . }}-postgrest
+      {{- end }}
       {{- with .Values.postgrest.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
