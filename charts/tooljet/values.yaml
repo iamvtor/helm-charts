@@ -35,8 +35,9 @@ apps:
       targetPort: 3000
       type: ClusterIP
 
+# PostgreSQL configuration - set enabled: false to use external database
 postgresql:
-  enabled: true
+  enabled: false  # Changed to false by default
   auth:
     username: "postgres"
     postgresPassword: "postgres"
@@ -199,8 +200,9 @@ postgrest:
     # Name of existing secret to use when create is false
     existingSecretName: ""
 
+# Redis configuration - set enabled: false to use external Redis
 redis:
-  enabled: false
+  enabled: false  # Changed to false by default
   architecture: standalone # Use in case multiple tooljet pods running
   fullnameOverride: redis
   auth:

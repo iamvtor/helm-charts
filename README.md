@@ -101,6 +101,14 @@ apps:
 ### External Database
 
 ```yaml
+# Disable internal PostgreSQL and Redis
+postgresql:
+  enabled: false
+
+redis:
+  enabled: false
+
+# Configure external PostgreSQL
 external_postgresql:
   enabled: true
   PG_HOST: "postgres.example.com"
@@ -108,6 +116,59 @@ external_postgresql:
   PG_PASS: "password"
   PG_PORT: "5432"
   PG_DB: "tooljet_prod"
+```
+
+### Complete External Configuration Example
+
+For a complete example using external databases and existing secrets, see `values-external-db.yaml`:
+
+```bash
+# Install with external database configuration
+helm install tooljet tooljet/tooljet -f values-external-db.yaml
+```
+
+## 🐛 Recent Fixes
+
+### Version 3.0.12+ includes fixes for:
+
+1. **External Database Support**: PostgreSQL and Redis are now properly disabled when `enabled: false`
+2. **Existing Secret Support**: When using `apps.tooljet.secret.create: false` with `existingSecretName`, the chart will:
+   - Not create the `tooljet-server` secret
+   - Not create the `tooljet-postgresql` secret (when using external PostgreSQL)
+   - Not create the `tooljet-redis` secret (when Redis is disabled)
+   - Use `envFrom` to load all environment variables from your existing secret
+
+3. **Proper Secret Management**: The chart now properly handles the creation of only necessary secrets based on your configuration
+
+### Configuration Examples
+
+#### Using External Databases with Existing Secret
+
+```yaml
+apps:
+  tooljet:
+    secret:
+      create: false
+      existingSecretName: "my-tooljet-secret"
+
+# Disable internal databases
+postgresql:
+  enabled: false
+
+redis:
+  enabled: false
+
+# Configure external databases
+external_postgresql:
+  enabled: true
+  PG_HOST: "your-postgres-host"
+  PG_USER: "tooljet"
+  PG_PASS: "password"
+  PG_DB: "tooljet_prod"
+
+environmentVariables:
+  REDIS_HOST: "your-redis-host"
+  REDIS_PASSWORD: "your-redis-password"
 ```
 
 ## 📚 Documentation
@@ -154,6 +215,9 @@ helm install tooljet charts/tooljet/ --dry-run
 
 # Test with custom values
 helm install tooljet charts/tooljet/ -f charts/tooljet/values-example.yaml --dry-run
+
+# Test with external database configuration
+helm install tooljet charts/tooljet/ -f charts/tooljet/values-external-db.yaml --dry-run
 ```
 
 ## 📝 Contributing

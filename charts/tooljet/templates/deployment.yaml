@@ -32,6 +32,20 @@ spec:
               protocol: TCP
           resources:
             {{- toYaml .Values.apps.tooljet.deployment.resources | nindent 12 }}
+          
+          {{- /* Use envFrom with existing secret if specified */ -}}
+          {{- if and (not .Values.apps.tooljet.secret.create) (.Values.apps.tooljet.secret.existingSecretName) }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.apps.tooljet.secret.existingSecretName }}
+          {{- else if .Values.apps.tooljet.secret.create }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.apps.tooljet.secret.name }}
+          {{- end }}
+          
+          {{- /* Individual environment variables - only if not using existing secret */ -}}
+          {{- if or .Values.apps.tooljet.secret.create (not .Values.apps.tooljet.secret.existingSecretName) }}
           env:
             {{- /* Individual environment variables from values */ -}}
             {{- range $key, $value := .Values.environmentVariables }}
@@ -122,7 +136,7 @@ spec:
             - name: REDIS_USER
               value: {{ .Values.redis_pod.REDIS_USER | quote }}
             {{- end }}
-            {{- if not .Values.environmentVariables.REDIS_PASSWORD }}
+            {{- if and (not .Values.environmentVariables.REDIS_PASSWORD) (.Values.redis.enabled) }}
             - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -145,16 +159,6 @@ spec:
                   name: {{ .Values.apps.tooljet.secret.name }}
                   key: SECRET_KEY_BASE
             {{- end }}
-          
-          {{- /* Use envFrom with existing secret if specified */ -}}
-          {{- if and (not .Values.apps.tooljet.secret.create) (.Values.apps.tooljet.secret.existingSecretName) }}
-          envFrom:
-            - secretRef:
-                name: {{ .Values.apps.tooljet.secret.existingSecretName }}
-          {{- else if .Values.apps.tooljet.secret.create }}
-          envFrom:
-            - secretRef:
-                name: {{ .Values.apps.tooljet.secret.name }}
           {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:

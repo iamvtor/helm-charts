@@ -1,0 +1,80 @@
+# Example values file for ToolJet with external databases and existing secrets
+# This configuration disables internal PostgreSQL and Redis, and uses existing secrets
+
+apps:
+  tooljet:
+    replicaCount: 1
+    secret:
+      # Disable secret creation and use existing secret
+      create: false
+      existingSecretName: "my-tooljet-secret"  # Your existing secret name
+    service:
+      port: 80
+      targetPort: 3000
+      type: ClusterIP
+
+# Disable internal PostgreSQL
+postgresql:
+  enabled: false
+
+# Disable internal Redis
+redis:
+  enabled: false
+
+# Configure external PostgreSQL
+external_postgresql:
+  enabled: true
+  PG_HOST: "your-postgres-host.example.com"
+  PG_USER: "tooljet"
+  PG_PASS: "your-password"
+  PG_PORT: "5432"
+  PG_DB: "tooljet_prod"
+
+# Configure external ToolJet database (if different from main PostgreSQL)
+tooljetdb_external_postgresql:
+  enabled: true
+  TOOLJET_DB_USER: "tooljet"
+  TOOLJET_DB_HOST: "your-tooljet-db-host.example.com"
+  TOOLJET_DB_PASS: "your-tooljet-db-password"
+  TOOLJET_DB: "tooljet_db"
+  PGRST_DB_URI: "postgres://tooljet:password@your-tooljet-db-host:5432/tooljet_db"
+
+# Environment variables (these will override values from the existing secret if needed)
+environmentVariables:
+  TOOLJET_HOST: "https://tooljet.yourdomain.com"
+  DEPLOYMENT_PLATFORM: "k8s:helm"
+  
+  # Redis configuration for external Redis
+  REDIS_HOST: "your-redis-host.example.com"
+  REDIS_PORT: "6379"
+  REDIS_USER: "default"
+  REDIS_PASSWORD: "your-redis-password"
+  
+  # Lockbox and secret configuration (if not in existing secret)
+  LOCKBOX_MASTER_KEY: "your-32-byte-hex-key"
+  SECRET_KEY_BASE: "your-64-byte-hex-key"
+  
+  # Optional configurations
+  DISABLE_SIGNUPS: "false"
+  DISABLE_TOOLJET_TELEMETRY: "true"
+
+# Disable PostgREST secret creation (since we're using external database)
+postgrest:
+  secret:
+    create: false
+
+# Disable autoscaling
+autoscaling:
+  enabled: false
+
+# Configure ingress if needed
+ingress:
+  enabled: true
+  type: nginx
+  nginx:
+    hostname: tooljet.yourdomain.com
+    ingressClassName: nginx
+    tls:
+      - secretName: tooljet-tls
+        hosts:
+          - tooljet.yourdomain.com 
