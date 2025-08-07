@@ -61,8 +61,8 @@ spec:
               value: {{ .Values.env.TOOLJET_HOST | quote }}
             {{- end }}
             
-            {{- /* Database configuration - only if not set in environmentVariables */ -}}
-            {{- if and (not .Values.environmentVariables.PG_HOST) (not .Values.external_postgresql.enabled) }}
+            {{- /* Database configuration - only if not set in environmentVariables and not using existing secret */ -}}
+            {{- if and (not .Values.environmentVariables.PG_HOST) (not .Values.external_postgresql.enabled) (.Values.postgresql.enabled) }}
             - name: PG_HOST
               value: {{ include "tooljet.postgresql.host" . | quote }}
             - name: PG_PORT
@@ -74,7 +74,7 @@ spec:
                 secretKeyRef:
                   name: {{ include "tooljet.postgresql.secretName" . }}
                   key: postgres-password
-            {{- else if and (not .Values.environmentVariables.PG_HOST) (.Values.external_postgresql.enabled) }}
+            {{- else if and (not .Values.environmentVariables.PG_HOST) (.Values.external_postgresql.enabled) (not .Values.apps.tooljet.secret.existingSecretName) }}
             - name: PG_HOST
               value: {{ .Values.external_postgresql.PG_HOST | quote }}
             - name: PG_PORT

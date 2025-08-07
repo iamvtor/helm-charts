@@ -118,8 +118,10 @@ Return the PostgreSQL Secret Name
     {{- else }}
         {{- printf "%s-postgresql" (include "tooljet.fullname" .) -}}
     {{- end }}
+{{- else if .Values.external_postgresql.existingSecret }}
+    {{- .Values.external_postgresql.existingSecret -}}
 {{- else }}
-    {{- default (printf "%s-external-postgresql" (include "tooljet.fullname" .)) .Values.external_postgresql.existingSecret -}}
+    {{- printf "%s-external-postgresql" (include "tooljet.fullname" .) -}}
 {{- end }}
 {{- end }}
 

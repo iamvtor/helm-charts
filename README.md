@@ -43,7 +43,7 @@ spec:
   source:
     repoURL: https://iamvtor.github.io/helm-charts
     chart: tooljet
-    targetRevision: 3.0.12
+    targetRevision: 3.0.13
     helm:
       values: |
         environmentVariables:
@@ -88,7 +88,7 @@ environmentVariables:
   PG_DB: "tooljet_prod"
 ```
 
-### Using Existing Secret
+### Using Existing Secret (Recommended)
 
 ```yaml
 apps:
@@ -97,6 +97,8 @@ apps:
       create: false
       existingSecretName: "my-tooljet-secret"
 ```
+
+**Important**: When using an existing secret, ensure it contains ALL required environment variables including database credentials, Redis configuration, and ToolJet secrets.
 
 ### External Database
 
@@ -127,9 +129,18 @@ For a complete example using external databases and existing secrets, see `value
 helm install tooljet tooljet/tooljet -f values-external-db.yaml
 ```
 
+### External Configuration with Existing Secret
+
+For configuration using external databases with an existing secret containing all environment variables, see `values-simple-external.yaml`:
+
+```bash
+# Install with external configuration using existing secret
+helm install tooljet tooljet/tooljet -f values-simple-external.yaml
+```
+
 ## 🐛 Recent Fixes
 
-### Version 3.0.12+ includes fixes for:
+### Version 3.0.13+ includes fixes for:
 
 1. **External Database Support**: PostgreSQL and Redis are now properly disabled when `enabled: false`
 2. **Existing Secret Support**: When using `apps.tooljet.secret.create: false` with `existingSecretName`, the chart will:
@@ -137,12 +148,43 @@ helm install tooljet tooljet/tooljet -f values-external-db.yaml
    - Not create the `tooljet-postgresql` secret (when using external PostgreSQL)
    - Not create the `tooljet-redis` secret (when Redis is disabled)
    - Use `envFrom` to load all environment variables from your existing secret
+   - Not reference any other secrets for database credentials
 
-3. **Proper Secret Management**: The chart now properly handles the creation of only necessary secrets based on your configuration
+3. **External PostgreSQL Secret Fix**: Fixed issue where the chart was trying to reference a non-existent `tooljet-external-postgresql` secret
+   - When using external PostgreSQL with an existing main secret, no additional secrets are created or referenced
+   - All database credentials should be included in the existing secret
+
+4. **Proper Secret Management**: The chart now properly handles the creation of only necessary secrets based on your configuration
 
 ### Configuration Examples
 
-#### Using External Databases with Existing Secret
+#### Using External Databases with Existing Secret (Recommended)
+
+```yaml
+apps:
+  tooljet:
+    secret:
+      create: false
+      existingSecretName: "my-tooljet-secret"  # Contains ALL environment variables
+
+# Disable internal databases
+postgresql:
+  enabled: false
+
+redis:
+  enabled: false
+
+# Enable external databases (credentials in existing secret)
+external_postgresql:
+  enabled: true
+  # Do NOT set credentials here - they should be in the existing secret
+
+environmentVariables:
+  # Only override specific values if needed
+  TOOLJET_HOST: "https://tooljet.yourdomain.com"
+```
+
+#### Using External Databases with Individual Variables
 
 ```yaml
 apps:
@@ -158,7 +200,7 @@ postgresql:
 redis:
   enabled: false
 
-# Configure external databases
+# Configure external databases with individual variables
 external_postgresql:
   enabled: true
   PG_HOST: "your-postgres-host"
@@ -218,6 +260,9 @@ helm install tooljet charts/tooljet/ -f charts/tooljet/values-example.yaml --dry
 
 # Test with external database configuration
 helm install tooljet charts/tooljet/ -f charts/tooljet/values-external-db.yaml --dry-run
+
+# Test with external configuration using existing secret
+helm install tooljet charts/tooljet/ -f charts/tooljet/values-simple-external.yaml --dry-run
 ```
 
 ## 📝 Contributing

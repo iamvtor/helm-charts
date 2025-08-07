@@ -1,5 +1,28 @@
 # ToolJet Helm Chart Changelog
 
+## [3.0.13] - 2024-08-04
+
+### Fixed
+- **PostgreSQL and Redis Dependencies**: Fixed issue where PostgreSQL and Redis were being created even when `enabled: false`
+  - Set `postgresql.enabled: false` and `redis.enabled: false` by default
+  - Dependencies now properly respect the enabled flags
+- **Secret Creation Logic**: Fixed multiple secrets being created unnecessarily
+  - `tooljet-server` secret only created when `apps.tooljet.secret.create: true`
+  - `tooljet-postgresql` secret only created when PostgreSQL is enabled AND PostgREST secret creation is enabled
+  - `tooljet-redis` secret only created when Redis is enabled
+- **Deployment Template**: Fixed deployment template to properly handle existing secrets
+  - Use `envFrom` with existing secret when `apps.tooljet.secret.create: false` and `existingSecretName` is specified
+  - Only add individual environment variables when not using existing secrets
+  - Properly handle Redis password only when Redis is enabled
+
+### Added
+- **External Database Example**: Added `values-external-db.yaml` with complete example for external databases and existing secrets
+- **Enhanced Documentation**: Updated README with bug fixes documentation and configuration examples
+
+### Changed
+- **Default Values**: Changed default values to disable internal PostgreSQL and Redis by default
+- **Secret Template Logic**: Improved secret creation conditions to be more precise
+
 ## [Unreleased] - 2024-01-XX
 
 ### Added

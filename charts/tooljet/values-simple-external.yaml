@@ -1,0 +1,67 @@
+# Example for ToolJet with external databases using existing secrets
+# This configuration uses external PostgreSQL and Redis with proper secret management
+
+apps:
+  tooljet:
+    replicaCount: 1
+    secret:
+      # Use existing secret that contains ALL environment variables
+      create: false
+      existingSecretName: "my-tooljet-secret"  # Your existing secret with all env vars
+
+# Disable internal PostgreSQL
+postgresql:
+  enabled: false
+
+# Disable internal Redis
+redis:
+  enabled: false
+
+# External PostgreSQL configuration
+# Note: Database credentials should be in your existing secret, not here
+external_postgresql:
+  enabled: true
+  # Do NOT set credentials here - they should be in your existing secret
+  # PG_HOST, PG_USER, PG_PASS, PG_DB should be in the existing secret
+
+# External ToolJet database configuration (if different from main PostgreSQL)
+tooljetdb_external_postgresql:
+  enabled: true
+  # Do NOT set credentials here - they should be in your existing secret
+  # TOOLJET_DB_HOST, TOOLJET_DB_USER, TOOLJET_DB_PASS, TOOLJET_DB should be in the existing secret
+
+# Environment variables that override values from the existing secret (if needed)
+environmentVariables:
+  TOOLJET_HOST: "https://tooljet.yourdomain.com"
+  DEPLOYMENT_PLATFORM: "k8s:helm"
+  
+  # Redis configuration (should be in your existing secret)
+  REDIS_HOST: "your-redis-host.example.com"
+  REDIS_PORT: "6379"
+  REDIS_USER: "default"
+  REDIS_PASSWORD: "your-redis-password"
+  
+  # Lockbox and secret configuration (should be in your existing secret)
+  LOCKBOX_MASTER_KEY: "your-32-byte-hex-key"
+  SECRET_KEY_BASE: "your-64-byte-hex-key"
+
+# Disable PostgREST secret creation (since we're using existing secret)
+postgrest:
+  secret:
+    create: false
+
+# Disable autoscaling
+autoscaling:
+  enabled: false
+
+# Configure ingress if needed
+ingress:
+  enabled: true
+  type: nginx
+  nginx:
+    hostname: tooljet.yourdomain.com
+    ingressClassName: nginx
+    tls:
+      - secretName: tooljet-tls
+        hosts:
+          - tooljet.yourdomain.com 
